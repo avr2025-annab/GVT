@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESA1</title>
+    <!-- Verknüpfung zum externen CSS-Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container"><!-- Hauptcontainer für Content -->
+        <header><!-- Kopfbereich -->
+            <h1>ESA1</h1>
+            <h2>Interaktiv animierte ScheibeAufgabe</h2>
+        </header>
+
+        <main><!-- Hauptinhaltsbereich -->
+            <div class="animation-container"><!-- Container für Animationen -->
+                <div class="disc-section"><!-- Bereich für die Scheibe -->
+                    <div class="disc-container"><!-- Container für die Scheibenanzeige -->
+                        <!-- Bild der Scheibe mit ID zur JS-Ansteuerung -->
+                        <img id="disc" src="ESA1_1-02.png" alt="img" class="disc-image" crossorigin="anonymous">
+
+                    </div>
+                    <div class="disc-info"><!-- Anzeigeinformationen zur Scheibe -->
+                        <p>Aktueller Winkel: <span id="current-angle">0°</span></p>
+                        <!-- Winkelanzeige -->
+                        <p>Modus: <span id="rotation-mode">Manual</span></p>
+                        <!-- Rotationsmodus -->
+                    </div>
+                </div>
+
+                <div class="bunny-section"><!-- Bereich für Hasen-Animation -->
+                    <div class="bunny-container"><!-- Container für Hasengrafik -->
+                        <!-- Animierte Hasen-Sprite -->
+                        <div id="bunny" class="bunny-sprite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-info card"><!-- Steuerungsanleitung -->
+                <h3>Bedienungsanleitung</h3>
+                <div class="controls-grid"><!-- Raster mit Steuerungselementen -->
+                    <div class="control-item"><!-- Steuerung-Item -->
+                        <kbd>L</kbd><!-- Tastenkürzel -->
+                        <span>Scheibe nach links drehen (gegen den Uhrzeigersinn)</span>
+                    </div>
+                    <div class="control-item">
+                        <kbd>R</kbd>
+                        <span>Scheibe nach rechts drehen (im Uhrzeigersinn)</span>
+                    </div>
+                    <div class="control-item">
+                        <kbd>A</kbd>
+                        <span>Automatische Drehung ein-/ausschalten</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-display card"><!-- Anzeige des Anwendungsstatus -->
+                <h3>Anwendungsstatus</h3>
+                <div class="status-grid"><!-- Raster mit Status-Items -->
+                    <div class="status-item">
+                        <label>Scheibenbild:</label>
+                        <span id="frame-display">1 von 5</span><!-- Nummer des Frames -->
+                    </div>
+                    <div class="status-item">
+                        <label>Automatische Drehung:</label>
+                        <span id="auto-status"
+                            class="status status--error">AUS</span><!-- Status der automatischen Drehung -->
+                    </div>
+                    <div class="status-item">
+                        <label>Hase animiert:</label>
+                        <span class="status status--success">AN</span><!-- Status der Hasen-Animation -->
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer><!-- Fußbereich mit Quellenangabe -->
+            <div class="credits card">
+                <h3>Quelle</h3>
+                <p>Das animierte Bild wurde mit Hilfe von Adobe Illustrator erstellt und enthält meine
+                    Initialen. </p>
+                <p>Das zweite wurde hingegen aus dem Internet
+                    heruntergeladen(https://opengameart.org/content/bunny-sprite).</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Einbindung des JavaScript-Codes -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>
