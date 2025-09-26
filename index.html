@@ -1,14 +1,77 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GVT Modul Aufgaben</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GVT Modul - Hauptseite</title>
+<style>
+:root {
+  --color-background: #fcfcf9;
+  --color-text: #13343b;
+  --color-primary: #21808d;
+  --color-primary-hover: #1d747f;
+  --color-primary-active: #1a6873;
+  --color-secondary: rgba(94, 82, 64, 0.12);
+  --color-border: rgba(94, 82, 64, 0.2);
+  --color-error: #c0152f;
+  --color-success: #21808d;
+  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-size-base: 14px;
+  --space-16: 16px;
+  --radius-lg: 12px;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+html {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+body, * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-16);
+}
+
+h1, h2, h3 {
+  margin-bottom: var(--space-16);
+  font-weight: 600;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+ul {
+  padding-left: 20px;
+}
+
+</style>
 </head>
 <body>
-    <h1>GVT Modul Aufgaben</h1>
+  <div class="container">
+    <h1>Willkommen</h1>
+    <h3> Dieses Repository enthält meine Lösungen zu den Übungs- und Projektaufgaben aus dem Modul „Graphical Visualisation Technologies“. Die Aufgaben beschäftigen sich mit der Erstellung, Analyse und Umsetzung von grafischen Visualisierungen auf Basis aktueller Methoden und Technologien. </h3>
     <p>Unten finden Sie die Links zu den einzelnen Aufgaben im Rahmen des GVT Moduls.</p>
-    <p> EA 1 - Interaktiv animierte Scheibe </p>
-    <a href="aufgabe1/index.html"> Link </a>
+    <ul>
+      <li><a href="aufgabe1/index.html">Zur Aufgabe 1 (Interaktiv animierte Scheibe)</a></li>
+      <!-- Weitere Links -->
+    </ul>
+  </div>
 </body>
 </html>
