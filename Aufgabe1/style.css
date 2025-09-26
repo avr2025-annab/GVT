@@ -78,7 +78,7 @@ body,
 .bunny-sprite {
   width: 80px;
   height: 80px;
-  background-image: url('bunny-hop-spritesheet.png');
+  background-image: url('img/bunny-hop-spritesheet.png');
   background-size: 120px 45px;
   /* Größe des Sprite-Sheets */
   animation: bunnyJump 2s steps(3) infinite;
