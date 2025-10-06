@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ESA5</title>
+  <!-- Verlinkung zu externem CSS-Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ladeanzeige, wird ausgeblendet wenn Szene startet -->
+  <div id="loading">Lädt...</div>
+
+  <!-- Canvas-Element als Zeichenfläche für WebGL/Three.js -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Steuerungselemente: Slider für Rekursionstiefe und Umschaltknopf für Material -->
+  <div class="controls">
+    <label for="recursionDepth">Rekursionstiefe: <span id="depthValue">1</span></label>
+    <input type="range" id="recursionDepth" min="0" max="4" value="1" step="1" />
+    <button id="toggleMode">Zu Verlauf wechseln</button>
+  </div>
+
+  <!-- Legende für die Steuerung der Kamera -->
+  <div class="steuerung-legend">
+    <h4>Steuerung:</h4>
+    <ul>
+      <li><b>W / S</b> - Kamera nach oben / unten rotieren</li>
+      <li><b>A / D</b> - Kamera nach links / rechts rotieren</li>
+      <li><b>Q / E</b> - Kamera heran- / herauszoomen</li>
+    </ul>
+  </div>
+
+  <!-- Einbindung von Three.js Bibliothek via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <!-- Einbindung der eigenen Javascript-Datei mit der 3D-Logik -->
+  <script src="app.js"></script>
+</body>
+</html>

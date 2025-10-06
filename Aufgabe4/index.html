@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESA4</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>ESA4</h1>
+            <p>Parametrische Oberflächen</p>
+        </header>
+
+        <main>
+            <!-- Steuerungsbereich -->
+            <div class="controls">
+                <h2>Oberflächenauswahl</h2>
+                <select id="surfaceSelect">
+                    <option value="torus">Torus</option>
+                    <option value="tropfen">Tropfen</option>
+                    <option value="doubleTropfen">Doppel-Tropfen (Eigene Kreation)</option>
+                    <option value="seashell">Seashell</option>
+                </select>
+
+                <h3>Anzeigemodus</h3>
+                <button id="wireframeBtn" class="btn btn--secondary">Wireframe</button>
+                <button id="filledBtn" class="btn btn--primary btn--active">Gefüllt</button>
+
+            </div>
+
+            <!-- WebGL Canvas -->
+            <canvas id="webgl-canvas" width="800" height="600"></canvas>
+
+            <!-- Informationsbereich -->
+            <div class="surface-info">
+                <h2 id="surfaceName">Torus</h2>
+                <p id="surfaceDescription">Ein klassischer Torus, erzeugt durch Rotation eines Kreises um eine Achse</p>
+
+                <h3>Mathematische Formeln</h3>
+                <div class="formulas">
+                    <p><strong>x =</strong> <span id="formulaX">(R + r·cos(v))·cos(u)</span></p>
+                    <p><strong>y =</strong> <span id="formulaY">(R + r·cos(v))·sin(u)</span></p>
+                    <p><strong>z =</strong> <span id="formulaZ">r·sin(v)</span></p>
+                </div>
+                <br>
+                <h3>Parameter</h3>
+                <div id="parameters">
+                    <p><strong>u-Bereich:</strong> [0, 2π]</p>
+                    <p><strong>v-Bereich:</strong> [0, 2π]</p>
+                    <p><strong>R (Hauptradius):</strong> 0.4</p>
+                    <p><strong>r (Nebenradius):</strong> 0.2</p>
+                </div>
+                <br>
+                <h3>Quelle</h3>
+                <p id="sourceInfo">Klassische Torus-Parametrisierung</p>
+            </div>
+        </main>
+
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

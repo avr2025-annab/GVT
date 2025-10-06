@@ -1,0 +1,107 @@
+:root {
+  /* Farb- und Schriftvariablen für das Design */
+  --color-background: #fcfcf9;
+  /* Hellbeiger Hintergrund */
+  --color-text: #13343b;
+  /* Dunkle Textfarbe */
+  --color-primary: #21808d;
+  /* Primärfarbe (blaugrün) */
+  --color-primary-hover: #1d747f;
+  /* Hover-Farbe für Buttons */
+  --color-primary-active: #1a6873;
+  /* Aktive Farbe für Buttons */
+  --color-secondary: rgba(94, 82, 64, 0.12);
+  /* Sekundäre Hintergrundfarbe */
+  --color-border: rgba(94, 82, 64, 0.2);
+  /* Dezenter Rand */
+  --color-error: #c0152f;
+  /* Fehlerfarbe (Rot) */
+  --color-success: #21808d;
+  /* Erfolgsfarbe (Blaugrün) */
+  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Grundschriftfamilie */
+  --font-size-base: 14px;
+  /* Basis-Schriftgröße */
+  --space-16: 16px;
+  /* Standardabstand */
+  --radius-lg: 12px;
+  /* Große Rundungen für Container und Buttons */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  /* Dezente Schatten */
+}
+
+html {
+  /* Grundlegende Schrift- und Hintergrundfarbe sowie Glättung */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  /* Schriftglättung für bessere Lesbarkeit */
+}
+
+body,
+* {
+  /* Einheitliches Box-Modell, Margin und Padding zurücksetzen */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  /* Max-Breite und horizontales Zentrieren */
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-16);
+}
+
+/* Buttons - Gestaltung */
+button {
+  margin: 0 8px 16px 0;
+  padding: 8px 16px;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  /* Weicher Farbwechsel */
+}
+
+button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+button:active {
+  background-color: var(--color-primary-active);
+}
+
+/* Canvas-Stil mit abgerundeten Ecken und Schatten */
+canvas {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background-color: var(--color-secondary);
+  display: block;
+  margin-top: var(--space-16);
+}
+
+/* Überschriften-Style */
+h1,
+h2,
+h3 {
+  margin-bottom: var(--space-16);
+  font-weight: 600;
+}
+
+/* Responsive Anpassung für kleinere Bildschirme */
+@media (max-width: 768px) {
+  canvas {
+    width: 100%;
+    /* Volle Breite */
+    height: auto;
+    /* Höhe proportional */
+  }
+}
