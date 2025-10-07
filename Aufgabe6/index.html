@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="utf-8" />
+  <title>EA6 — Torus und Kugeln: gleiche Achse, Kugeln im Inneren</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #eee;
+      font-family: sans-serif;
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    .info {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="info">
+    <b>Tasten:</b> K = Schritt &nbsp; A = Auto an/aus<br>
+    Torus dreht sich um die Y-Achse, Kugeln bewegen sich auf derselben Bahn (XZ), aber im Inneren des Torus.<br>
+    Kugel-Orbit-Radius ist kleiner als Torus-Radius.
+  </div>
+  <canvas id="canvas" width="1200" height="800"></canvas>
+
+  <script id="vs" type="x-shader/x-vertex">
+// Deutscher Kommentar: Vertex-Shader: Transformation und Farbe
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+attribute vec3 aColor;
+
+uniform mat4 uPMatrix;
+uniform mat4 uMVMatrix;
+
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec3 vColor;
+
+void main(void){
+  vec4 pos = uMVMatrix * vec4(aPosition,1.0);
+  gl_Position = uPMatrix * pos;
+  vPosition = pos.xyz;
+  vNormal = mat3(uMVMatrix) * aNormal;
+  vColor = aColor;
+}
+</script>
+
+  <script id="fs" type="x-shader/x-fragment">
+// Deutscher Kommentar: Fragment-Shader für Beleuchtung und Farbe
+precision mediump float;
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec3 vColor;
+
+uniform vec3 uLightDir; // Licht-Richtung in Ansichtsperspektive
+
+void main(void){
+  // Licht-Berechnung
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(uLightDir);
+  float diff = max(dot(N, L), 0.0);
+  vec3 ambient = 0.18 * vColor;
+  vec3 diffuse = diff * vColor;
+  vec3 V = normalize(-vPosition);
+  vec3 H = normalize(L + V);
+  float spec = pow(max(dot(N,H),0.0), 32.0) * 0.4;
+  vec3 color = ambient + diffuse + spec;
+  gl_FragColor = vec4(color,1.0);
+}
+</script>
+
+  <script>
+    // Deutscher Kommentar: Initialisierung von WebGL und Shadern
+    const canvas = document.getElementById("canvas");
+    const gl = canvas.getContext("webgl", { antialias: true });
+    if (!gl) { alert("WebGL nicht verfügbar"); throw "no webgl"; }
+
+    // Shader kompilieren
+    function compileShader(id, type) {
+      // Shader-Quellcode laden und kompilieren
+      const src = document.getElementById(id).text;
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+        throw "shader error";
+      }
+      return s;
+    }
+    const vs = compileShader("vs", gl.VERTEX_SHADER);
+    const fs = compileShader("fs", gl.FRAGMENT_SHADER);
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    // Attribut- und Uniform-Standorte holen
+    const attrPos = gl.getAttribLocation(prog, "aPosition");
+    const attrNorm = gl.getAttribLocation(prog, "aNormal");
+    const attrColor = gl.getAttribLocation(prog, "aColor");
+    const uPMatrix = gl.getUniformLocation(prog, "uPMatrix");
+    const uMVMatrix = gl.getUniformLocation(prog, "uMVMatrix");
+    const uLightDir = gl.getUniformLocation(prog, "uLightDir");
+
+    // Hilfsfunktionen für Matrizen (Transformationen)
+    function mat4_identity() { return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; }
+    function mat4_mul(a, b) {
+      // Deutscher Kommentar: Matrizenmultiplikation 4x4
+      const o = new Array(16);
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          let s = 0;
+          for (let k = 0; k < 4; k++) s += a[r * 4 + k] * b[k * 4 + c];
+          o[r * 4 + c] = s;
+        }
+      }
+      return o;
+    }
+    function mat4_translate(tx, ty, tz) { const m = mat4_identity(); m[12] = tx; m[13] = ty; m[14] = tz; return m; }
+    function mat4_rotateY(a) { const c = Math.cos(a), s = Math.sin(a); return [c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]; }
+    function mat4_perspective(fovy, aspect, near, far) {
+      // Deutscher Kommentar: Matrix für Perspektive
+      const f = 1.0 / Math.tan(fovy / 2), nf = 1 / (near - far);
+      const out = new Array(16).fill(0);
+      out[0] = f / aspect; out[5] = f; out[10] = (far + near) * nf; out[11] = -1; out[14] = (2 * far * near) * nf;
+      return out;
+    }
+    function mat4_lookAt(eye, center, up) {
+      // Deutscher Kommentar: Ansichtsmatrix für Kamera
+      const fx = center[0] - eye[0], fy = center[1] - eye[1], fz = center[2] - eye[2];
+      let rl = 1 / Math.hypot(fx, fy, fz);
+      const f = [fx * rl, fy * rl, fz * rl];
+      const sx = f[1] * up[2] - f[2] * up[1], sy = f[2] * up[0] - f[0] * up[2], sz = f[0] * up[1] - f[1] * up[0];
+      rl = 1 / Math.hypot(sx, sy, sz);
+      const s = [sx * rl, sy * rl, sz * rl];
+      const ux = s[1] * f[2] - s[2] * f[1], uy = s[2] * f[0] - s[0] * f[2], uz = s[0] * f[1] - s[1] * f[0];
+      const out = mat4_identity();
+      out[0] = s[0]; out[4] = s[1]; out[8] = s[2];
+      out[1] = ux; out[5] = uy; out[9] = uz;
+      out[2] = -f[0]; out[6] = -f[1]; out[10] = -f[2];
+      out[12] = -(s[0] * eye[0] + s[1] * eye[1] + s[2] * eye[2]);
+      out[13] = -(ux * eye[0] + uy * eye[1] + uz * eye[2]);
+      out[14] = (f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2]);
+      return out;
+    }
+
+    // Torus-Geometrie erzeugen
+    function createTorus(R, r, tubeSegs, ringSegs) {
+      // Deutscher Kommentar: Erzeugung der Torus-Geometrie
+      const positions = [], normals = [], colors = [], indices = [];
+      for (let j = 0; j <= ringSegs; j++) {
+        const theta = j / ringSegs * 2 * Math.PI;
+        const cosT = Math.cos(theta), sinT = Math.sin(theta);
+        for (let i = 0; i <= tubeSegs; i++) {
+          const phi = i / tubeSegs * 2 * Math.PI;
+          const cosP = Math.cos(phi), sinP = Math.sin(phi);
+          const x = (R + r * cosP) * cosT;
+          const y = r * sinP;
+          const z = (R + r * cosP) * sinT;
+          positions.push(x, y, z);
+          const nx = cosP * cosT, ny = sinP, nz = cosP * sinT;
+          normals.push(nx, ny, nz);
+          colors.push(0.9, 0.9, 0.9);
+        }
+      }
+      for (let j = 0; j < ringSegs; j++) {
+        for (let i = 0; i < tubeSegs; i++) {
+          const a = j * (tubeSegs + 1) + i;
+          const b = a + tubeSegs + 1;
+          indices.push(a, b, a + 1);
+          indices.push(b, b + 1, a + 1);
+        }
+      }
+      return { positions, normals, colors, indices };
+    }
+
+    // Kugel-Geometrie erzeugen
+    function createSphere(radius, latSegs, lonSegs, color) {
+      // Deutscher Kommentar: Erzeugung der Kugel-Geometrie
+      const positions = [], normals = [], colors = [], indices = [];
+      for (let lat = 0; lat <= latSegs; lat++) {
+        const theta = lat * Math.PI / latSegs;
+        const sinT = Math.sin(theta), cosT = Math.cos(theta);
+        for (let lon = 0; lon <= lonSegs; lon++) {
+          const phi = lon * 2 * Math.PI / lonSegs;
+          const sinP = Math.sin(phi), cosP = Math.cos(phi);
+          const x = radius * sinT * cosP;
+          const y = radius * cosT;
+          const z = radius * sinT * sinP;
+          positions.push(x, y, z);
+          normals.push(x / radius, y / radius, z / radius);
+          colors.push(color[0], color[1], color[2]);
+        }
+      }
+      for (let lat = 0; lat < latSegs; lat++) {
+        for (let lon = 0; lon < lonSegs; lon++) {
+          const a = lat * (lonSegs + 1) + lon;
+          const b = a + lonSegs + 1;
+          indices.push(a, b, a + 1);
+          indices.push(b, b + 1, a + 1);
+        }
+      }
+      return { positions, normals, colors, indices };
+    }
+
+    // Ebene (Boden) erzeugen
+    function createPlane(size, div, color) {
+      // Deutscher Kommentar: Erzeugung der Boden-Ebene
+      const positions = [], normals = [], colors = [], indices = [];
+      const step = size / div;
+      for (let j = 0; j <= div; j++) {
+        for (let i = 0; i <= div; i++) {
+          const x = -size / 2 + i * step;
+          const z = -size / 2 + j * step;
+          positions.push(x, -0.6, z);
+          normals.push(0, 1, 0);
+          colors.push(color[0], color[1], color[2]);
+        }
+      }
+      for (let j = 0; j < div; j++) {
+        for (let i = 0; i < div; i++) {
+          const a = j * (div + 1) + i;
+          const b = a + div + 1;
+          indices.push(a, b, a + 1);
+          indices.push(b, b + 1, a + 1);
+        }
+      }
+      return { positions, normals, colors, indices };
+    }
+
+    // VAO erstellen
+    function makeVAO(mesh) {
+      // Deutscher Kommentar: Erstellen und Laden der Buffers
+      const vao = {};
+      vao.nIndices = mesh.indices.length;
+      vao.posBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vao.posBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.positions), gl.STATIC_DRAW);
+      vao.normBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vao.normBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.normals), gl.STATIC_DRAW);
+      vao.colBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vao.colBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.colors), gl.STATIC_DRAW);
+      vao.idxBuf = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vao.idxBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.STATIC_DRAW);
+      return vao;
+    }
+    function bindAndEnable(vao) {
+      // Deutscher Kommentar: Buffer binden und Attribute setzen
+      gl.bindBuffer(gl.ARRAY_BUFFER, vao.posBuf); gl.vertexAttribPointer(attrPos, 3, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(attrPos);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vao.normBuf); gl.vertexAttribPointer(attrNorm, 3, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(attrNorm);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vao.colBuf); gl.vertexAttribPointer(attrColor, 3, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(attrColor);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vao.idxBuf);
+    }
+
+    // Viewport und Tiefentest
+    gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0.06, 0.06, 0.06, 1.0);
+
+    // Instanzen der Geometrien
+    const torusMajorRadius = 1.0;         // Torus großer Radius
+    const torusMinorRadius = 0.38;        // Torus kleiner Radius
+    const torusVAO = makeVAO(createTorus(torusMajorRadius, torusMinorRadius, 28, 64));
+    const planeVAO = makeVAO(createPlane(6.0, 20, [0.2, 0.2, 0.2]));
+    const sphereRadius = 0.12;
+    const sphereMeshProto = createSphere(sphereRadius, 16, 24, [1.0, 0.3, 0.3]);
+    const sphereVAO = makeVAO(sphereMeshProto);
+
+    // Orbit für Kugeln: kleiner als Torusradius
+    const sphereOrbitRadius = torusMajorRadius - torusMinorRadius * 0.6; // Wert kleiner als Haupt-Radius
+    let orbitAngle = 0.0;                          // gemeinsamer Orbitwinkel
+    const spherePhases = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2]; // Kugel-Phasen
+
+    // Drehung des Torus um Y-Achse
+    let torusSpin = 0.0;
+
+    const angleStep = 0.35;
+    const orbitSpeed = 0.9;
+    const spinSpeed = 0.8;
+
+    let auto = false, lastTime = 0;
+
+    // Kamera-Parameter
+    function updateViewport() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; gl.viewport(0, 0, canvas.width, canvas.height); }
+    updateViewport(); window.addEventListener("resize", updateViewport);
+
+    const cameraPos = [0, 1.2, 7.0];
+    const cameraTarget = [0, 0.0, 0];
+    const cameraUp = [0, 1, 0];
+
+    // Szene zeichnen
+    function drawScene() {
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      const aspect = canvas.width / canvas.height;
+      const pMat = mat4_perspective(Math.PI / 4, aspect, 0.1, 100.0);
+      const vMat = mat4_lookAt(cameraPos, cameraTarget, cameraUp);
+
+      // Licht-Richtung für Szene berechnen
+      const lightDirWorld = [0.5, 0.8, 0.6];
+      const lightDirView = [
+        vMat[0] * lightDirWorld[0] + vMat[4] * lightDirWorld[1] + vMat[8] * lightDirWorld[2],
+        vMat[1] * lightDirWorld[0] + vMat[5] * lightDirWorld[1] + vMat[9] * lightDirWorld[2],
+        vMat[2] * lightDirWorld[0] + vMat[6] * lightDirWorld[1] + vMat[10] * lightDirWorld[2]
+      ];
+      gl.uniform3fv(uLightDir, new Float32Array(lightDirView));
+
+      // Torus im Ursprung, dreht sich nur um Y
+      {
+        let m = mat4_identity();
+        m = mat4_translate(0.0, 0.0, 0.0);    // Torus im Ursprung
+        m = mat4_mul(m, mat4_rotateY(torusSpin));
+        const mv = mat4_mul(vMat, m);
+        gl.uniformMatrix4fv(uPMatrix, false, new Float32Array(pMat));
+        gl.uniformMatrix4fv(uMVMatrix, false, new Float32Array(mv));
+        bindAndEnable(torusVAO);
+        gl.drawElements(gl.TRIANGLES, torusVAO.nIndices, gl.UNSIGNED_SHORT, 0);
+      }
+
+      // Kugeln bewegen sich im Inneren des Torus auf kleiner Bahn
+      for (let i = 0; i < 4; i++) {
+        const a = orbitAngle + spherePhases[i];
+        const x = sphereOrbitRadius * Math.cos(a);
+        const z = torusMajorRadius * Math.sin(a);
+        const y = 0.0; // Kugeln in XZ-Ebene
+
+        const model = mat4_translate(x, y, z);
+        const mv = mat4_mul(vMat, model);
+
+        // Kugelfarben
+        const colorBase = [
+          [1.0, 0.35, 0.35],
+          [0.35, 1.0, 0.35],
+          [0.35, 0.45, 1.0],
+          [1.0, 0.85, 0.35]
+        ];
+        const cols = new Float32Array(sphereMeshProto.positions.length);
+        for (let k = 0; k < cols.length / 3; k++) {
+          cols[3 * k + 0] = colorBase[i][0];
+          cols[3 * k + 1] = colorBase[i][1];
+          cols[3 * k + 2] = colorBase[i][2];
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, sphereVAO.colBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, cols, gl.DYNAMIC_DRAW);
+
+        gl.uniformMatrix4fv(uPMatrix, false, new Float32Array(pMat));
+        gl.uniformMatrix4fv(uMVMatrix, false, new Float32Array(mv));
+        bindAndEnable(sphereVAO);
+        gl.drawElements(gl.TRIANGLES, sphereVAO.nIndices, gl.UNSIGNED_SHORT, 0);
+      }
+    }
+
+    // Tastatursteuerung
+    window.onkeydown = function (evt) {
+      // Steuerung: Schrittweise oder automatisch
+      const key = evt.key.toUpperCase();
+      if (key === "K") {
+        orbitAngle += angleStep;   // gemeinsamer Orbitwinkel
+        torusSpin += 0.25;        // Spin Torus um Y-Achse
+        drawScene();
+      } else if (key === "A") {
+        auto = !auto; if (auto) requestAnimationFrame(loop);
+      }
+    };
+
+    // Animationsschleife
+    function loop(t) {
+      // Zeitdifferenz berechnen
+      const dt = lastTime ? (t - lastTime) / 1000 : 0; lastTime = t; if (!auto) return;
+      orbitAngle += orbitSpeed * dt; // Orbitwinkel aktualisieren
+      torusSpin += spinSpeed * dt; // Torusspin aktualisieren
+      drawScene();
+      requestAnimationFrame(loop);
+    }
+
+    // Startszene
+    drawScene();
+  </script>
+</body>
+
+</html>

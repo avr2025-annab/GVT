@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Torus mit Textur</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script id="vertexShader" type="x-shader/x-vertex">
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;  // UV-Koordinaten an Fragment-Shader weitergeben
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+</script>
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+  uniform sampler2D tex;  // Bildtextur
+  uniform bool useProcedural;
+  varying vec2 vUv;
+
+  void main() {
+    if (useProcedural) {
+      // Schachbrettmuster
+      float scale = 10.0;  
+      float u = floor(vUv.x * scale);
+      float v = floor(vUv.y * scale);
+      float checker = mod(u + v, 2.0);
+      vec3 color = mix(vec3(1.0, 1.0, 1.0), vec3(0.1, 0.1, 0.1), checker);
+      gl_FragColor = vec4(color, 1.0);
+    } else {
+      // normale Bildtextur
+      gl_FragColor = texture2D(tex, vUv);
+    }
+  }
+</script>
+
+<script>
+  // Szene, Kamera, Renderer
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Torus-Geometrie mit UV-Koordinaten
+  const geometry = new THREE.TorusGeometry(3, 1, 64, 128);
+
+  // Textur laden
+  const texture = new THREE.TextureLoader().load("texture.jpg"); 
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+  // Shader-Material
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      tex: { value: texture },
+      useProcedural: { value: false }
+    },
+    vertexShader: document.getElementById('vertexShader').textContent,
+    fragmentShader: document.getElementById('fragmentShader').textContent
+  });
+
+  const torus = new THREE.Mesh(geometry, material);
+  scene.add(torus);
+
+  camera.position.z = 10;
+
+  // Animation
+  function animate() {
+    requestAnimationFrame(animate);
+    torus.rotation.x += 0.01;
+    torus.rotation.y += 0.01;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Umschalten zwischen Bild- und prozeduraler Textur (mit Tastendruck)
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "p") material.uniforms.useProcedural.value = !material.uniforms.useProcedural.value;
+  });
+</script>
+</body>
+</html>
